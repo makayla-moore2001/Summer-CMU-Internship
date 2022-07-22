@@ -3,6 +3,7 @@
 # Load data ----
 
 library(tidyverse)
+library(vip)
 county_rankings <- read.csv("http://www.stat.cmu.edu/cmsac/sure/2022/materials/data/health/optum_projects/county_rankings.csv")
 teen_births <- read_csv("https://data.cdc.gov/api/views/y268-sna3/rows.csv?accessType=DOWNLOAD")
 overdoses <- read.csv("~/Summer 2022 CMU Final Project/Drug alcohol Overdose.csv")
