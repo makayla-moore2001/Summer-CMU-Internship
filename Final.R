@@ -55,7 +55,7 @@ county_rankings %>%
 
 # Creating scatter plots with correlations of each predictor with teen births with the race of Black ----
 
-# Scatter plot of teen births (Black) and excessive drinking 
+# Scatter plot of teen births and excessive drinking 
 
 county_rankings %>%
   filter(!Teen.births..Black. %in% 0) %>%
@@ -280,20 +280,20 @@ clean_county_rankings <- county_rankings
 clean_county_rankings
   
 
-init_kmeans <- 
-  kmeans(dplyr::select(clean_county_rankings,
-                       Teen.births.raw.value, Excessive.drinking.raw.value),
-         algorithm = "Lloyd", centers = 4,
-         nstart = 1)
-clean_county_rankings %>%
-  mutate(race_clusters = 
-           as.factor(init_kmeans$cluster)) %>%
-  ggplot(aes(x = Teen.births.raw.value, y = Excessive.drinking.raw.value,
-             color = race_clusters)) +
-  geom_point() + 
-  ggthemes::scale_color_colorblind() +
-  theme_bw() +
-  theme(legend.position = "bottom")
+#init_kmeans <- 
+ # kmeans(dplyr::select(clean_county_rankings,
+  #                     Teen.births.raw.value, Excessive.drinking.raw.value),
+   #      algorithm = "Lloyd", centers = 4,
+    #     nstart = 1)
+#clean_county_rankings %>%
+ # mutate(race_clusters = 
+  #         as.factor(init_kmeans$cluster)) %>%
+  #ggplot(aes(x = Teen.births.raw.value, y = Excessive.drinking.raw.value,
+   #          color = race_clusters)) +
+  #geom_point() + 
+  #ggthemes::scale_color_colorblind() +
+  #theme_bw() +
+  #theme(legend.position = "bottom")
 
 # Simple linear regression model of all predictors ----
 
@@ -357,7 +357,7 @@ outliers
 
 library(glmnet)
 model_x <- county_rankings %>%
-  dplyr::select(-Teen.births..Black., -Teen.births..White., -Teen.births..Hispanic., -Teen.births..Asian.Pacific.Islander.) %>%
+  dplyr::select(-Name, -Total, -Teen.births..Black., -Teen.births..White., -Teen.births..Hispanic., -Teen.births..Asian.Pacific.Islander.) %>%
   as.matrix()
 model_y <- county_rankings$Teen.births.raw.value
 
@@ -370,20 +370,20 @@ plot(fit_ridge_cv)
 
 # Lasso Regression Model
 
-fit_lasso_cv <- cv.glmnet(model_x, model_y, 
-                          alpha = 1)
-tidy_lasso_coef <- tidy(fit_lasso_cv$glmnet.fit)
-tidy_lasso_coef %>%
-  ggplot(aes(x = lambda, y = estimate, 
-             group = term)) +
-  scale_x_log10() +
-  geom_line(alpha = 0.75) +
-  geom_vline(xintercept = 
-               fit_lasso_cv$lambda.min) +
-  geom_vline(xintercept = 
-               fit_lasso_cv$lambda.1se, 
-             linetype = "dashed", color = "red") +
-  theme_bw()
+#fit_lasso_cv <- cv.glmnet(model_x, model_y, 
+ #                         alpha = 1)
+#tidy_lasso_coef <- tidy(fit_lasso_cv$glmnet.fit)
+#tidy_lasso_coef %>%
+ # ggplot(aes(x = lambda, y = estimate, 
+  #           group = term)) +
+  #scale_x_log10() +
+  #geom_line(alpha = 0.75) +
+  #geom_vline(xintercept = 
+   #            fit_lasso_cv$lambda.min) +
+  #geom_vline(xintercept = 
+   #            fit_lasso_cv$lambda.1se, 
+    #         linetype = "dashed", color = "red") +
+  #theme_bw()
 
 
 
