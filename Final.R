@@ -53,6 +53,46 @@ county_rankings %>%
   theme_bw()
 
 
+# Scatter plot of teen births and adult smoking ----
+
+county_rankings %>%
+  filter(!Teen.births.raw.value %in% 0) %>%
+  ggplot() +
+  geom_point(aes(x = Teen.births.raw.value, y = Adult.smoking.raw.value)) +
+  theme_bw()
+
+# Scatter plot of teen births and Unemployment ----
+
+county_rankings %>%
+  filter(!Teen.births.raw.value %in% 0) %>%
+  ggplot() +
+  geom_point(aes(x = Teen.births.raw.value, y = Unemployment.raw.value)) +
+  theme_bw() 
+
+
+# Scatter plot of teen births and Children in poverty ----
+
+county_rankings %>%
+  filter(!Teen.births.raw.value %in% 0) %>%
+  ggplot() +
+  geom_point(aes(x = Teen.births.raw.value, y = Children.in.poverty.raw.value)) +
+  theme_bw()
+
+# Scatter plot of teen births and children in single parent households ----
+
+county_rankings %>%
+  filter(!Teen.births.raw.value %in% 0) %>%
+  ggplot() +
+  geom_point(aes(x = Teen.births.raw.value, y = Children.in.single.parent.households.raw.value)) +
+  theme_bw()
+
+# Scatter plot of teen births and poor mental health days ----
+
+county_rankings %>%
+  filter(!Teen.births.raw.value %in% 0) %>%
+  ggplot() +
+  geom_point(aes(x = Teen.births.raw.value, y = Poor.mental.health.days.raw.value)) +
+  theme_bw()
 # Creating scatter plots with correlations of each predictor with teen births with the race of Black ----
 
 # Scatter plot of teen births and excessive drinking 
@@ -270,7 +310,6 @@ county_rankings %>%
 
 
 
-# Create clustering of different races of teen births----
 
 library(dslabs)
 county_rankings <- as_tibble(county_rankings)
@@ -325,9 +364,14 @@ var(predict(init_lm)) / var(clean_county_rankings$Teen.births.raw.value)
 train_preds <- predict(init_lm)
 head(train_preds)
 
+
 head(init_lm$fitted.values)
 
-# Teen births against excessive drinking and adult smoking ----
+
+
+# Installing packages
+install.packages("plotmo")
+# Teen births against all predictors ----
 
 clean_county_rankings %>%
   mutate(pred_vals = predict(init_lm)) %>%
@@ -357,24 +401,63 @@ outliers
 
 library(glmnet)
 model_x <- county_rankings %>%
-  dplyr::select(-Name, -Total, -Teen.births..Black., -Teen.births..White., -Teen.births..Hispanic., -Teen.births..Asian.Pacific.Islander.) %>%
+  dplyr::select(-Name, -Total, -Teen.births..Black., -Teen.births..White., -Teen.births..Hispanic., 
+                -Teen.births..Asian.Pacific.Islander.) %>%
+  rename(Adlt.Smoke = Adult.smoking.raw.value, Child.Pov = Children.in.poverty.raw.value,
+         Chid.1PH = Children.in.single.parent.households.raw.value, Poor.ment = Poor.mental.health.days.raw.value,
+         Unemploy = Unemployment.raw.value, Ex.Drink = Excessive.drinking.raw.value, 
+         Tn.births = Teen.births.raw.value) %>%
   as.matrix()
 model_y <- county_rankings$Teen.births.raw.value
 
+# Each line represents each of the independent variables 
 init_ridge_fit <- glmnet(model_x, model_y, alpha = 0)
 plot(init_ridge_fit, xvar = "lambda")
 
+library(plotmo)
+plot_glmnet(init_ridge_fit)
+
+
+
+# worse it gets more regularization i do, under fitting
 fit_ridge_cv <- cv.glmnet(model_x, model_y, alpha = 0)
 plot(fit_ridge_cv)
 
 
+
+tidy_ridge_coef <- tidy(fit_ridge_cv$glmnet.fit)
+tidy_ridge_coef %>%
+  filter(lambda == fit_ridge_cv$lambda.1se) %>%
+  mutate(coef_sign = as.factor(sign(estimate)),
+         term = fct_reorder(term, estimate)) %>%
+  ggplot(aes(x = term, y = estimate, fill = coef_sign)) +
+  geom_bar(stat = "identity", color = "white") +
+  scale_fill_manual(values = c("darkred", "darkblue"), guide = FALSE) +
+  coord_flip() + theme_bw()
+
 # Lasso Regression Model
 
+fit_ridge_cv <- cv.glmnet(model_x, model_y, alpha = 1)
+plot(fit_ridge_cv)
+
+tidy_ridge_coef <- tidy(fit_ridge_cv$glmnet.fit)
+tidy_ridge_coef %>%
+  filter(lambda == fit_ridge_cv$lambda.1se) %>%
+  mutate(coef_sign = as.factor(sign(estimate)),
+         term = fct_reorder(term, estimate)) %>%
+  ggplot(aes(x = term, y = estimate, fill = coef_sign)) +
+  geom_bar(stat = "identity", color = "white") +
+  scale_fill_manual(values = c("darkred", "darkblue"), guide = FALSE) +
+  coord_flip() + theme_bw()
+
+
+
+#library(broom)
 #fit_lasso_cv <- cv.glmnet(model_x, model_y, 
  #                         alpha = 1)
 #tidy_lasso_coef <- tidy(fit_lasso_cv$glmnet.fit)
 #tidy_lasso_coef %>%
- # ggplot(aes(x = lambda, y = estimate, 
+ #ggplot(aes(x = lambda, y = estimate, 
   #           group = term)) +
   #scale_x_log10() +
   #geom_line(alpha = 0.75) +
